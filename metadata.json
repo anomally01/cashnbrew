@@ -1,0 +1,6 @@
+{
+  "name": "Cash and Brew",
+  "description": "A modern café cashier POS application featuring staff terminal login, menu management, order customization, and transaction history.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
