@@ -26,6 +26,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.CoffeeMaker
 import androidx.compose.material.icons.filled.EmojiFoodBeverage
@@ -33,13 +35,16 @@ import androidx.compose.material.icons.filled.Icecream
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -65,6 +70,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -80,7 +86,9 @@ import com.example.ui.theme.OnPrimaryContainer
 import com.example.ui.theme.OnSurfaceVariant
 import com.example.ui.theme.OnSurfaceWarm
 import com.example.ui.theme.OutlineVariant
+import com.example.ui.theme.SecondaryWarm
 import com.example.ui.theme.SurfaceContainer
+import com.example.ui.theme.SurfaceContainerHighest
 import com.example.ui.theme.SurfaceDark
 import com.example.util.toRupiah
 import kotlinx.coroutines.launch
@@ -113,8 +121,8 @@ fun MenuScreen(
             else -> product.category.equals(selectedCategory, ignoreCase = true)
         }
         val matchesSearch = searchQuery.isBlank() ||
-                product.name.contains(searchQuery, ignoreCase = true) ||
-                product.description.contains(searchQuery, ignoreCase = true)
+                product.name.contains(searchQuery.trim(), ignoreCase = true) ||
+                product.description.contains(searchQuery.trim(), ignoreCase = true)
 
         matchesCategory && matchesSearch
     }
@@ -123,7 +131,7 @@ fun MenuScreen(
         topBar = {
             TopAppBarHeader(
                 title = "Menu Catalog",
-                subtitle = "Select Items",
+                subtitle = if (searchQuery.isNotBlank()) "${filteredProducts.size} results for \"$searchQuery\"" else "Specialty Drinks & Bakery",
                 onNotificationClick = { /* no-op */ }
             )
         },
@@ -143,7 +151,7 @@ fun MenuScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // 1. Search Bar
+            // 1. Real-Time Search Bar
             item {
                 Box(
                     modifier = Modifier
@@ -155,7 +163,7 @@ fun MenuScreen(
                         onValueChange = { searchQuery = it },
                         placeholder = {
                             Text(
-                                "Search menu...",
+                                "Search coffee, food, drinks...",
                                 color = OnSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -163,36 +171,53 @@ fun MenuScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = OnSurfaceVariant,
+                                contentDescription = "Search icon",
+                                tint = if (searchQuery.isNotBlank()) CaramelPrimary else OnSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
                         trailingIcon = {
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 4.dp)
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(CaramelPrimaryContainer),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Tune,
-                                    contentDescription = "Filter",
-                                    tint = OnPrimaryContainer,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = "" },
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .testTag("clear_search_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Clear search",
+                                        tint = OnSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(end = 4.dp)
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(SurfaceContainerHighest),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Tune,
+                                        contentDescription = "Filter",
+                                        tint = SecondaryWarm,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         },
-                        shape = RoundedCornerShape(50),
+                        shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = SurfaceContainer,
                             unfocusedContainerColor = SurfaceContainer,
-                            focusedBorderColor = CaramelPrimaryContainer,
-                            unfocusedBorderColor = OutlineVariant.copy(alpha = 0.3f),
+                            focusedBorderColor = CaramelPrimary,
+                            unfocusedBorderColor = OutlineVariant,
                             focusedTextColor = OnSurfaceWarm,
-                            unfocusedTextColor = OnSurfaceWarm
+                            unfocusedTextColor = OnSurfaceWarm,
+                            cursorColor = CaramelPrimary
                         ),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -207,13 +232,27 @@ fun MenuScreen(
 
             // 2. Categories Horizontal Pills
             item {
-                Column(modifier = Modifier.padding(top = 12.dp)) {
-                    Text(
-                        text = "Categories",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = OnSurfaceWarm,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-                    )
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Categories",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = OnSurfaceWarm
+                        )
+                        if (searchQuery.isNotBlank() || selectedCategory != "All") {
+                            Text(
+                                text = "${filteredProducts.size} items found",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = CaramelPrimary
+                            )
+                        }
+                    }
 
                     val categories = listOf(
                         CategoryPillData("All", Icons.Default.Restaurant),
@@ -247,20 +286,80 @@ fun MenuScreen(
                 Spacer(modifier = Modifier.height(28.dp))
             }
 
-            // 4. Products List
+            // 4. Products List with Empty Search State
             if (filteredProducts.isEmpty()) {
                 item {
-                    Box(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(40.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(horizontal = 20.dp, vertical = 20.dp)
+                            .testTag("search_empty_state"),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceContainer),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant)
                     ) {
-                        Text(
-                            text = "No products found matching \"$searchQuery\"",
-                            color = OnSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(SurfaceContainerHighest),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SearchOff,
+                                    contentDescription = null,
+                                    tint = OnSurfaceVariant,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "No products found",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = OnSurfaceWarm
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Text(
+                                text = "No items match \"$searchQuery\" in category \"$selectedCategory\". Try a different keyword or category filter.",
+                                color = OnSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            OutlinedButton(
+                                onClick = {
+                                    searchQuery = ""
+                                    selectedCategory = "All"
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, CaramelPrimary),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = SurfaceContainerHighest.copy(alpha = 0.3f)
+                                ),
+                                modifier = Modifier.testTag("reset_search_button")
+                            ) {
+                                Text(
+                                    "Reset Filters",
+                                    color = CaramelPrimary,
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+                        }
                     }
                 }
             } else {

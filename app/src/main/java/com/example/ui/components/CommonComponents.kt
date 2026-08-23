@@ -1,5 +1,7 @@
 package com.example.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,8 +18,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -35,30 +39,86 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.data.AuthManager
+import com.example.ui.theme.AppThemeMode
 import com.example.ui.theme.CaramelPrimary
 import com.example.ui.theme.ErrorRed
+import com.example.ui.theme.OnPrimary
 import com.example.ui.theme.OnSurfaceVariant
 import com.example.ui.theme.OnSurfaceWarm
 import com.example.ui.theme.OutlineVariant
 import com.example.ui.theme.SurfaceContainer
+import com.example.ui.theme.SurfaceContainerHigh
 import com.example.ui.theme.SurfaceContainerLow
 import com.example.ui.theme.SurfaceDark
+import com.example.ui.theme.ThemeManager
 
 enum class NavTab {
     DASHBOARD, MENU, CART, HISTORY
+}
+
+@Composable
+fun ThemeTogglePill(
+    modifier: Modifier = Modifier
+) {
+    val themeMode by ThemeManager.themeMode.collectAsState()
+    val isEspresso = themeMode == AppThemeMode.ESPRESSO
+
+    val targetBgColor = if (isEspresso) SurfaceContainer else SurfaceContainerHigh
+    val animatedBg by animateColorAsState(targetValue = targetBgColor, animationSpec = tween(300), label = "theme_bg")
+    val animatedBorder by animateColorAsState(
+        targetValue = if (isEspresso) CaramelPrimary.copy(alpha = 0.5f) else OutlineVariant,
+        animationSpec = tween(300),
+        label = "theme_border"
+    )
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(animatedBg)
+            .border(1.dp, animatedBorder, RoundedCornerShape(20.dp))
+            .clickable { ThemeManager.toggleTheme() }
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .testTag("theme_toggle_button"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(if (isEspresso) CaramelPrimary else Color(0xFFD99B65)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isEspresso) Icons.Default.Coffee else Icons.Default.LightMode,
+                contentDescription = "Current Theme: ${themeMode.displayName}",
+                tint = if (isEspresso) Color(0xFF1A120B) else Color.White,
+                modifier = Modifier.size(13.dp)
+            )
+        }
+
+        Text(
+            text = themeMode.displayName,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp
+            ),
+            color = OnSurfaceWarm
+        )
+    }
 }
 
 @Composable
@@ -74,11 +134,11 @@ fun TopAppBarHeader(
         modifier = modifier
             .fillMaxWidth()
             .background(SurfaceDark)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f, fill = false)) {
             Text(
                 text = subtitle.uppercase(),
                 style = MaterialTheme.typography.labelSmall.copy(
@@ -101,16 +161,19 @@ fun TopAppBarHeader(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Theme Toggle Pill (Espresso <-> Cream)
+            ThemeTogglePill()
+
             // Notification Button
             IconButton(
                 onClick = onNotificationClick,
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(14.dp))
                     .background(SurfaceContainer)
-                    .border(1.dp, OutlineVariant, RoundedCornerShape(16.dp))
+                    .border(1.dp, OutlineVariant, RoundedCornerShape(14.dp))
                     .testTag("notification_button")
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -118,7 +181,7 @@ fun TopAppBarHeader(
                         imageVector = Icons.Outlined.Notifications,
                         contentDescription = "Notifications",
                         tint = OnSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     // Notification indicator dot
                     Box(
@@ -133,15 +196,15 @@ fun TopAppBarHeader(
             // Staff avatar badge
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(14.dp))
                     .background(SurfaceContainer)
-                    .border(1.dp, OutlineVariant, RoundedCornerShape(16.dp)),
+                    .border(1.dp, OutlineVariant, RoundedCornerShape(14.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(28.dp)
                         .clip(CircleShape)
                         .background(CaramelPrimary),
                     contentAlignment = Alignment.Center
@@ -150,7 +213,7 @@ fun TopAppBarHeader(
                         text = (currentUser?.name?.take(1) ?: "A").uppercase(),
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = SurfaceContainer
+                            color = OnPrimary
                         )
                     )
                 }
@@ -287,4 +350,3 @@ private fun NavBarItem(
         }
     }
 }
-

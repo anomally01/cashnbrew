@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -18,6 +19,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,13 +44,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocalPrintshop
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,10 +67,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,6 +84,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -97,6 +110,7 @@ import com.example.ui.theme.OnSurfaceWarm
 import com.example.ui.theme.OutlineVariant
 import com.example.ui.theme.SecondaryWarm
 import com.example.ui.theme.SurfaceContainer
+import com.example.ui.theme.SurfaceContainerHigh
 import com.example.ui.theme.SurfaceContainerHighest
 import com.example.ui.theme.SurfaceDark
 import com.example.ui.theme.TertiaryContainerGreen
@@ -112,8 +126,7 @@ fun PaymentSuccessScreen(
     onViewHistory: () -> Unit
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var showReceiptModal by remember { mutableStateOf(false) }
+    var showReceiptPdfModal by remember { mutableStateOf(false) }
 
     // Entrance Animation States
     val iconScale = remember { Animatable(0f) }
@@ -130,7 +143,7 @@ fun PaymentSuccessScreen(
     val buttonsAlpha = remember { Animatable(0f) }
     val buttonsOffsetY = remember { Animatable(40f) }
 
-    // Subtle Continuous Pulse on Check Badge Glow
+    // Pulse transition for check badge
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_transition")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -166,7 +179,7 @@ fun PaymentSuccessScreen(
             )
         }
 
-        // Step 2: Check icon bounces in with spring dynamics
+        // Step 2: Check icon bounces in
         launch {
             iconAlpha.animateTo(1f, animationSpec = tween(200))
         }
@@ -218,7 +231,7 @@ fun PaymentSuccessScreen(
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Ambient Green Radial Glow in background
+        // Ambient Radial Glow
         Box(
             modifier = Modifier
                 .size(340.dp)
@@ -239,9 +252,11 @@ fun PaymentSuccessScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
         ) {
-            // Success Check Icon with Glow & Ripple Ring
+            // Success Check Badge
             Box(
                 modifier = Modifier
                     .scale(iconScale.value)
@@ -276,7 +291,7 @@ fun PaymentSuccessScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Animated Header Texts
             Column(
@@ -304,31 +319,35 @@ fun PaymentSuccessScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Animated Order Receipt Card with Clickable preview
+            // Order Summary Card with quick preview link
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset { IntOffset(0, cardOffsetY.value.dp.roundToPx()) }
                     .alpha(cardAlpha.value)
-                    .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.4f))
-                    .clickable { showReceiptModal = true }
+                    .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.3f))
+                    .clickable { showReceiptPdfModal = true }
                     .testTag("receipt_card"),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = SurfaceContainer),
-                border = androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant)
+                border = BorderStroke(1.dp, OutlineVariant)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Order ID", style = MaterialTheme.typography.bodyMedium, color = OnSurfaceVariant)
-                        Text(transaction.id, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = OnSurfaceWarm)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(transaction.id, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = OnSurfaceWarm)
+                            Icon(Icons.Default.Visibility, contentDescription = "Preview PDF", tint = CaramelPrimary, modifier = Modifier.size(16.dp))
+                        }
                     }
 
                     Row(
@@ -376,9 +395,9 @@ fun PaymentSuccessScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Animated Action Buttons
+            // Action Buttons
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
@@ -386,45 +405,13 @@ fun PaymentSuccessScreen(
                     .offset { IntOffset(0, buttonsOffsetY.value.dp.roundToPx()) }
                     .alpha(buttonsAlpha.value)
             ) {
-                // Print / Export Receipt Action Button
-                OutlinedButton(
-                    onClick = { showReceiptModal = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .testTag("print_export_receipt_button"),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, CaramelPrimary.copy(alpha = 0.6f)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = CaramelPrimary.copy(alpha = 0.08f)
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Print,
-                            contentDescription = "Print or Export Receipt",
-                            tint = CaramelPrimary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            "Print / Export Receipt",
-                            color = CaramelPrimary,
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
-                }
-
-                // New Order Primary Button
+                // PDF Bill Preview & Print Mockup Button
                 Button(
-                    onClick = onNewOrder,
+                    onClick = { showReceiptPdfModal = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                        .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = CaramelPrimary.copy(alpha = 0.3f))
-                        .testTag("success_new_order_button"),
+                        .height(52.dp)
+                        .testTag("preview_print_receipt_button"),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = CaramelPrimary,
@@ -435,12 +422,42 @@ fun PaymentSuccessScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.Default.RestaurantMenu, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("New Order", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "PDF Bill Mockup",
+                            tint = OnPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            "Preview Bill & Print (PDF)",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        )
                     }
                 }
 
-                // View History Secondary Button
+                // New Order Secondary Button
+                OutlinedButton(
+                    onClick = onNewOrder,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("success_new_order_button"),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, OutlineVariant),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = SurfaceContainer
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.RestaurantMenu, contentDescription = null, tint = CaramelPrimary, modifier = Modifier.size(18.dp))
+                        Text("Start New Order", color = OnSurfaceWarm, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
+                    }
+                }
+
+                // View Activity History
                 OutlinedButton(
                     onClick = onViewHistory,
                     modifier = Modifier
@@ -448,9 +465,9 @@ fun PaymentSuccessScreen(
                         .height(48.dp)
                         .testTag("success_view_history_button"),
                     shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant),
+                    border = BorderStroke(1.dp, OutlineVariant.copy(alpha = 0.5f)),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = SurfaceContainerHighest.copy(alpha = 0.3f)
+                        containerColor = Color.Transparent
                     )
                 ) {
                     Row(
@@ -458,33 +475,35 @@ fun PaymentSuccessScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.History, contentDescription = null, tint = SecondaryWarm, modifier = Modifier.size(18.dp))
-                        Text("View Activity History", color = OnSurfaceWarm, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
+                        Text("View Activity History", color = OnSurfaceVariant, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium))
                     }
                 }
             }
         }
     }
 
-    // Receipt Visualizer Modal / Dialog
-    if (showReceiptModal) {
-        ReceiptVisualizerDialog(
+    // Interactive PDF-Style Bill & Print Mockup Visualizer Modal
+    if (showReceiptPdfModal) {
+        PdfBillVisualizerDialog(
             transaction = transaction,
-            onDismiss = { showReceiptModal = false },
-            onShare = {
-                shareReceiptText(context, transaction)
+            onDismiss = { showReceiptPdfModal = false },
+            onCloseOrder = {
+                showReceiptPdfModal = false
+                onNewOrder()
             }
         )
     }
 }
 
 @Composable
-private fun ReceiptVisualizerDialog(
+private fun PdfBillVisualizerDialog(
     transaction: Transaction,
     onDismiss: () -> Unit,
-    onShare: () -> Unit
+    onCloseOrder: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    var selectedFormatTab by remember { mutableIntStateOf(0) } // 0: PDF Document, 1: Thermal Slip
     var isPrinting by remember { mutableStateOf(false) }
     var printSuccess by remember { mutableStateOf(false) }
 
@@ -495,8 +514,8 @@ private fun ReceiptVisualizerDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f))
-                .padding(horizontal = 20.dp, vertical = 32.dp),
+                .background(Color.Black.copy(alpha = 0.82f))
+                .padding(horizontal = 14.dp, vertical = 20.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -505,418 +524,753 @@ private fun ReceiptVisualizerDialog(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header Bar with Close button
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Receipt,
-                            contentDescription = null,
-                            tint = CaramelPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            "Transaction Receipt",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = OnSurfaceWarm
-                            )
-                        )
-                    }
-
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainer)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = OnSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-
-                // Authentic Visual Thermal Receipt Canvas
+                // PDF Viewer Top Toolbar
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(16.dp, RoundedCornerShape(16.dp))
-                        .testTag("thermal_receipt_paper"),
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFFAF7F2), // Thermal Paper Off-White
-                    contentColor = Color(0xFF1E1A16)
+                        .shadow(8.dp, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    color = Color(0xFF231F1C)
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Store Branding
-                        Text(
-                            text = "CASH AND BREW",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 2.sp,
-                                fontSize = 22.sp
-                            ),
-                            color = Color(0xFF1A120B)
-                        )
-                        Text(
-                            text = "Specialty Coffee & Bakery",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 12.sp
-                            ),
-                            color = Color(0xFF6B5E52)
-                        )
-                        Text(
-                            text = "Jl. Senopati No. 42, Jakarta Selatan",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 10.sp
-                            ),
-                            color = Color(0xFF8C7E72)
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-                        DashedDivider()
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Transaction Metadata
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                "REC: #${transaction.id}",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
-                                ),
-                                color = Color(0xFF1A120B)
-                            )
-                            Text(
-                                transaction.date,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 11.sp
-                                ),
-                                color = Color(0xFF6B5E52)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFE53935)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "PDF",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+
+                            Column {
+                                Text(
+                                    "BILL_#${transaction.id}.pdf",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFFF5F2ED)
+                                )
+                                Text(
+                                    "Page 1 of 1 • 100% Zoom • Tax Invoice",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    color = Color(0xFFA68E74)
+                                )
+                            }
                         }
 
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(
-                                "CASHIER: ${AuthManager.currentUser.value?.name ?: "Admin Cashier"}",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 10.sp
-                                ),
-                                color = Color(0xFF6B5E52)
-                            )
-                            Text(
-                                "POS #01",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 10.sp
-                                ),
-                                color = Color(0xFF6B5E52)
-                            )
+                            // Share Button
+                            IconButton(
+                                onClick = { shareReceiptText(context, transaction) },
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF332D28))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Share",
+                                    tint = CaramelPrimary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+
+                            // Close Icon
+                            IconButton(
+                                onClick = onDismiss,
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF332D28))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close",
+                                    tint = Color(0xFFD4C8BC),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
+                    }
+                }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-                        DashedDivider()
-                        Spacer(modifier = Modifier.height(14.dp))
+                // Format Switcher Bar (PDF Document vs Thermal Slip)
+                TabRow(
+                    selectedTabIndex = selectedFormatTab,
+                    containerColor = Color(0xFF1E1A17),
+                    contentColor = CaramelPrimary,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedFormatTab]),
+                            color = CaramelPrimary,
+                            height = 2.5.dp
+                        )
+                    }
+                ) {
+                    Tab(
+                        selected = selectedFormatTab == 0,
+                        onClick = { selectedFormatTab = 0 },
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(15.dp))
+                                Text("A4 Tax Invoice (PDF)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        selectedContentColor = CaramelPrimary,
+                        unselectedContentColor = Color(0xFFA68E74)
+                    )
+                    Tab(
+                        selected = selectedFormatTab == 1,
+                        onClick = { selectedFormatTab = 1 },
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.ReceiptLong, contentDescription = null, modifier = Modifier.size(15.dp))
+                                Text("80mm Thermal Receipt", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        selectedContentColor = CaramelPrimary,
+                        unselectedContentColor = Color(0xFFA68E74)
+                    )
+                }
 
-                        // Itemized Table Header
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "QTY / ITEM",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
-                                ),
-                                color = Color(0xFF1A120B)
-                            )
-                            Text(
-                                "AMOUNT",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
-                                ),
-                                color = Color(0xFF1A120B)
-                            )
-                        }
+                // Document Render Canvas
+                if (selectedFormatTab == 0) {
+                    // ==========================================
+                    // REALISTIC A4 PDF TAX INVOICE BILL LAYOUT
+                    // ==========================================
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(20.dp, RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
+                            .border(1.dp, Color(0xFFDDD5CA), RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
+                            .testTag("pdf_bill_canvas"),
+                        color = Color(0xFFFFFFFF),
+                        contentColor = Color(0xFF1F1A15)
+                    ) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            // Coffee Cup Watermark in background
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .alpha(0.04f)
+                                    .size(240.dp)
+                                    .border(12.dp, Color.Black, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "CASH & BREW",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Items Breakdown
-                        if (transaction.items.isNotEmpty()) {
-                            transaction.items.forEach { item ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(22.dp)
+                            ) {
+                                // PDF Header: Logo & Company Information
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 3.dp),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.Top
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
+                                    Column {
                                         Text(
-                                            text = "${item.quantity}x ${item.product.name}",
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontWeight = FontWeight.SemiBold,
-                                                fontSize = 13.sp
+                                            text = "CASH & BREW",
+                                            style = MaterialTheme.typography.titleLarge.copy(
+                                                fontWeight = FontWeight.Black,
+                                                letterSpacing = 1.5.sp,
+                                                fontSize = 22.sp
                                             ),
-                                            color = Color(0xFF1A120B)
+                                            color = Color(0xFF3E2723)
                                         )
                                         Text(
-                                            text = "${item.size} (${item.product.price.toRupiah()})",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontSize = 11.sp
-                                            ),
-                                            color = Color(0xFF8C7E72)
+                                            text = "PT. CASH AND BREW INDONESIA",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
+                                            color = Color(0xFF5D4037)
+                                        )
+                                        Text(
+                                            text = "Jl. Senopati Raya No. 42, Kebayoran Baru, Jakarta",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                            color = Color(0xFF757575)
+                                        )
+                                        Text(
+                                            text = "NPWP: 01.345.678.9-012.000 • PB1 Resto",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                            color = Color(0xFF757575)
                                         )
                                     }
-                                    Text(
-                                        text = item.itemTotal.toRupiah(),
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = FontFamily.Monospace,
-                                            fontSize = 13.sp
-                                        ),
-                                        color = Color(0xFF1A120B)
-                                    )
+
+                                    // Invoice Badge
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(0xFFE8F5E9),
+                                            border = BorderStroke(1.dp, Color(0xFF81C784))
+                                        ) {
+                                            Text(
+                                                "TAX INVOICE (PAID)",
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontWeight = FontWeight.Black,
+                                                    fontSize = 10.sp
+                                                ),
+                                                color = Color(0xFF2E7D32)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            "INV-CB-${transaction.id}",
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                fontFamily = FontFamily.Monospace,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 11.sp
+                                            ),
+                                            color = Color(0xFF3E2723)
+                                        )
+                                    }
                                 }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+                                HorizontalDivider(color = Color(0xFF3E2723), thickness = 1.5.dp)
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Bill Metadata Box
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = Color(0xFFF9F6F0),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, Color(0xFFE6DDCE))
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Text(
+                                                "Bill To: Walk-in Customer",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
+                                                color = Color(0xFF2C241D)
+                                            )
+                                            Text(
+                                                "Cashier: ${AuthManager.currentUser.value?.name ?: "Admin Cashier"}",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                color = Color(0xFF6B5E52)
+                                            )
+                                            Text(
+                                                "Station: Terminal #01 (Main Bar)",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                                color = Color(0xFF8C7E72)
+                                            )
+                                        }
+
+                                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Text(
+                                                "Date: ${transaction.date}",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                color = Color(0xFF2C241D)
+                                            )
+                                            Text(
+                                                "Payment: ${transaction.paymentMethod}",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
+                                                color = Color(0xFF8D5B2F)
+                                            )
+                                            Text(
+                                                "Status: Settled & Closed",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 9.sp),
+                                                color = Color(0xFF2E7D32)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                // Itemized Bill Table Header
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = Color(0xFF3E2723),
+                                    shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("ITEM / DESCRIPTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp), color = Color.White, modifier = Modifier.weight(2f))
+                                        Text("SIZE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp), color = Color.White, modifier = Modifier.weight(0.8f), textAlign = TextAlign.Center)
+                                        Text("QTY", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp), color = Color.White, modifier = Modifier.weight(0.5f), textAlign = TextAlign.Center)
+                                        Text("UNIT", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp), color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                        Text("TOTAL", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp), color = Color.White, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
+                                    }
+                                }
+
+                                // Table Line Items
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .border(1.dp, Color(0xFFE0D7CB), RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
+                                ) {
+                                    if (transaction.items.isNotEmpty()) {
+                                        transaction.items.forEachIndexed { index, item ->
+                                            val rowBg = if (index % 2 == 0) Color(0xFFFFFFFF) else Color(0xFFFAF7F2)
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(rowBg)
+                                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Column(modifier = Modifier.weight(2f)) {
+                                                    Text(
+                                                        text = item.product.name,
+                                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                                                        color = Color(0xFF1E1A16)
+                                                    )
+                                                    Text(
+                                                        text = item.product.category,
+                                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                                        color = Color(0xFF8C7E72)
+                                                    )
+                                                }
+                                                Text(
+                                                    text = item.size,
+                                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                                                    color = Color(0xFF5D4037),
+                                                    modifier = Modifier.weight(0.8f),
+                                                    textAlign = TextAlign.Center
+                                                )
+                                                Text(
+                                                    text = "${item.quantity}",
+                                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                                                    color = Color(0xFF1E1A16),
+                                                    modifier = Modifier.weight(0.5f),
+                                                    textAlign = TextAlign.Center
+                                                )
+                                                Text(
+                                                    text = item.product.price.toRupiah(),
+                                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                                                    color = Color(0xFF6B5E52),
+                                                    modifier = Modifier.weight(1f),
+                                                    textAlign = TextAlign.End
+                                                )
+                                                Text(
+                                                    text = item.itemTotal.toRupiah(),
+                                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, fontSize = 11.sp),
+                                                    color = Color(0xFF1E1A16),
+                                                    modifier = Modifier.weight(1.2f),
+                                                    textAlign = TextAlign.End
+                                                )
+                                            }
+                                            if (index < transaction.items.size - 1) {
+                                                HorizontalDivider(color = Color(0xFFEBE3D7), thickness = 0.8.dp)
+                                            }
+                                        }
+                                    } else {
+                                        Text(
+                                            text = transaction.orderSummaryText,
+                                            modifier = Modifier.padding(12.dp),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF1E1A16)
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                // Totals & Accounting Section
+                                val subtotal = transaction.total / 1.08
+                                val tax = transaction.total - subtotal
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    // Left: Authorized Cashier Signature Box & QR
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Text(
+                                            "Payment Verification",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp),
+                                            color = Color(0xFF757575)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        BarcodeVisualizer(seed = transaction.id)
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            "E-Signature: [VERIFIED POS #${transaction.id.take(4)}]",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 8.sp,
+                                                fontFamily = FontFamily.Monospace
+                                            ),
+                                            color = Color(0xFF2E7D32)
+                                        )
+                                    }
+
+                                    // Right: Calculations Card
+                                    Surface(
+                                        modifier = Modifier.width(180.dp),
+                                        color = Color(0xFFF9F6F0),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = BorderStroke(1.dp, Color(0xFFE0D7CB))
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(10.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Subtotal", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = Color(0xFF6B5E52))
+                                                Text(subtotal.toRupiah(), style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp), color = Color(0xFF1E1A16))
+                                            }
+
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Tax (PB1 8%)", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = Color(0xFF6B5E52))
+                                                Text(tax.toRupiah(), style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp), color = Color(0xFF1E1A16))
+                                            }
+
+                                            HorizontalDivider(color = Color(0xFFD4C8BC), thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
+
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text("TOTAL BILL", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black, fontSize = 11.sp), color = Color(0xFF1E1A16))
+                                                Text(
+                                                    transaction.total.toRupiah(),
+                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, fontSize = 13.sp),
+                                                    color = Color(0xFF8D5B2F)
+                                                )
+                                            }
+
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Paid (${transaction.paymentMethod})", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color(0xFF757575))
+                                                Text(transaction.payment.toRupiah(), style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 9.sp), color = Color(0xFF1E1A16))
+                                            }
+
+                                            if (transaction.change > 0) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text("Change", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), color = Color(0xFF2E7D32))
+                                                    Text(transaction.change.toRupiah(), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, fontSize = 9.sp), color = Color(0xFF2E7D32))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+                                HorizontalDivider(color = Color(0xFFE6DDCE), thickness = 1.dp)
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = "This is a computer-generated tax invoice. No signature required. Thank you for your patronage.",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.5.sp, textAlign = TextAlign.Center),
+                                    color = Color(0xFF9E9E9E),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                             }
-                        } else {
-                            Text(
-                                text = transaction.orderSummaryText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF1A120B)
-                            )
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-                        DashedDivider()
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Subtotal & Financial Breakdown
-                        val subtotal = transaction.total / 1.08
-                        val tax = transaction.total - subtotal
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Subtotal", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B5E52))
-                            Text(
-                                subtotal.toRupiah(),
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                color = Color(0xFF1A120B)
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Tax (PB1 8%)", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B5E52))
-                            Text(
-                                tax.toRupiah(),
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                color = Color(0xFF1A120B)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                    }
+                } else {
+                    // ==========================================
+                    // 80MM THERMAL SLIP LAYOUT
+                    // ==========================================
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(20.dp, RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
+                            .testTag("thermal_receipt_paper"),
+                        shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp),
+                        color = Color(0xFFFAF7F2),
+                        contentColor = Color(0xFF1E1A16)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "TOTAL",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 16.sp
-                                ),
-                                color = Color(0xFF1A120B)
-                            )
-                            Text(
-                                transaction.total.toRupiah(),
+                                text = "CASH AND BREW",
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Black,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 18.sp
+                                    letterSpacing = 2.sp,
+                                    fontSize = 20.sp
                                 ),
                                 color = Color(0xFF1A120B)
                             )
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-                        DashedDivider()
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Payment Details
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Payment (${transaction.paymentMethod})", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B5E52))
                             Text(
-                                transaction.payment.toRupiah(),
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                color = Color(0xFF1A120B)
+                                text = "Specialty Coffee & Bakery",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
+                                color = Color(0xFF6B5E52)
                             )
-                        }
+                            Text(
+                                text = "Jl. Senopati No. 42, Jakarta Selatan",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = Color(0xFF8C7E72)
+                            )
 
-                        if (transaction.change > 0) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            DashedDivider()
+                            Spacer(modifier = Modifier.height(10.dp))
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Change Returned", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = Color(0xFF2E7D32))
+                                Text("REC: #${transaction.id}", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp), color = Color(0xFF1A120B))
+                                Text(transaction.date, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = Color(0xFF6B5E52))
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("CASHIER: ${AuthManager.currentUser.value?.name ?: "Admin Cashier"}", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = Color(0xFF6B5E52))
+                                Text("POS #01", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = Color(0xFF6B5E52))
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+                            DashedDivider()
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Table Items
+                            if (transaction.items.isNotEmpty()) {
+                                transaction.items.forEach { item ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 3.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "${item.quantity}x ${item.product.name}",
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp),
+                                                color = Color(0xFF1A120B)
+                                            )
+                                            Text(
+                                                text = "${item.size} (${item.product.price.toRupiah()})",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                color = Color(0xFF8C7E72)
+                                            )
+                                        }
+                                        Text(
+                                            text = item.itemTotal.toRupiah(),
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, fontSize = 12.sp),
+                                            color = Color(0xFF1A120B)
+                                        )
+                                    }
+                                }
+                            } else {
                                 Text(
-                                    transaction.change.toRupiah(),
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = FontFamily.Monospace
-                                    ),
-                                    color = Color(0xFF2E7D32)
+                                    text = transaction.orderSummaryText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF1A120B)
                                 )
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
+                            DashedDivider()
+                            Spacer(modifier = Modifier.height(10.dp))
 
-                        // Barcode & Footer Greeting
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            // Simulated Barcode
-                            BarcodeVisualizer(seed = transaction.id)
+                            val subtotal = transaction.total / 1.08
+                            val tax = transaction.total - subtotal
 
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Subtotal", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B5E52))
+                                Text(subtotal.toRupiah(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = Color(0xFF1A120B))
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Tax (PB1 8%)", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B5E52))
+                                Text(tax.toRupiah(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = Color(0xFF1A120B))
+                            }
                             Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("TOTAL", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black, fontSize = 15.sp), color = Color(0xFF1A120B))
+                                Text(transaction.total.toRupiah(), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, fontSize = 17.sp), color = Color(0xFF1A120B))
+                            }
 
+                            Spacer(modifier = Modifier.height(10.dp))
+                            DashedDivider()
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Payment (${transaction.paymentMethod})", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B5E52))
+                                Text(transaction.payment.toRupiah(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = Color(0xFF1A120B))
+                            }
+
+                            if (transaction.change > 0) {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Change Returned", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = Color(0xFF2E7D32))
+                                    Text(transaction.change.toRupiah(), style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace), color = Color(0xFF2E7D32))
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+                            BarcodeVisualizer(seed = transaction.id)
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = "THANK YOU FOR BREWING WITH US!",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp,
-                                    fontSize = 10.sp
-                                ),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, fontSize = 9.sp),
                                 color = Color(0xFF6B5E52)
-                            )
-                            Text(
-                                text = "Follow us @cashandbrew.coffee",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 9.sp
-                                ),
-                                color = Color(0xFF8C7E72)
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Modal Actions: Print & Export
-                Row(
+                // Bottom Action Bar: Print, Export & Close Order
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    shape = RoundedCornerShape(18.dp),
+                    color = Color(0xFF1E1A17),
+                    border = BorderStroke(1.dp, Color(0xFF332D28))
                 ) {
-                    // Export / Share Button
-                    OutlinedButton(
-                        onClick = onShare,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .testTag("export_share_button"),
-                        shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, CaramelPrimary),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = SurfaceContainer
-                        )
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = CaramelPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text(
-                                "Share / Export",
-                                color = CaramelPrimary,
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-                    }
-
-                    // Print Receipt Button
-                    Button(
-                        onClick = {
-                            if (!isPrinting) {
-                                isPrinting = true
-                                printSuccess = false
-                                coroutineScope.launch {
-                                    delay(1200) // Simulating thermal print command
-                                    isPrinting = false
-                                    printSuccess = true
-                                    Toast.makeText(context, "Receipt sent to Thermal Printer (80mm)", Toast.LENGTH_SHORT).show()
-                                    delay(1500)
-                                    printSuccess = false
+                            // Thermal / PDF Print Button
+                            Button(
+                                onClick = {
+                                    if (!isPrinting) {
+                                        isPrinting = true
+                                        printSuccess = false
+                                        coroutineScope.launch {
+                                            delay(1200) // Simulating printer spooling
+                                            isPrinting = false
+                                            printSuccess = true
+                                            val formatName = if (selectedFormatTab == 0) "A4 PDF Invoice" else "80mm Thermal Receipt"
+                                            Toast.makeText(context, "Spooling $formatName to POS Printer...", Toast.LENGTH_SHORT).show()
+                                            delay(1500)
+                                            printSuccess = false
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .testTag("modal_print_button"),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (printSuccess) TertiaryGreen else CaramelPrimary,
+                                    contentColor = OnPrimary
+                                )
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    if (isPrinting) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(16.dp),
+                                            color = OnPrimary,
+                                            strokeWidth = 2.dp
+                                        )
+                                        Text("Printing...", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                                    } else if (printSuccess) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Text("Sent to Printer!", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                                    } else {
+                                        Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Text("Print Bill", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                                    }
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .testTag("print_thermal_button"),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (printSuccess) TertiaryGreen else CaramelPrimary,
-                            contentColor = OnPrimary
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (isPrinting) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    color = OnPrimary,
-                                    strokeWidth = 2.dp
+
+                            // Share / Export File Button
+                            OutlinedButton(
+                                onClick = { shareReceiptText(context, transaction) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .testTag("modal_export_button"),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, CaramelPrimary),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color(0xFF28221D)
                                 )
-                                Text("Printing...", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
-                            } else if (printSuccess) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text("Printed!", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
-                            } else {
-                                Icon(Icons.Default.LocalPrintshop, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text("Print", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(Icons.Default.Share, contentDescription = null, tint = CaramelPrimary, modifier = Modifier.size(18.dp))
+                                    Text("Export PDF", color = CaramelPrimary, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                                }
+                            }
+                        }
+
+                        // Close & Complete Order Action Button
+                        Button(
+                            onClick = onCloseOrder,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp)
+                                .testTag("close_and_complete_order_button"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF2E7D32),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text("Close & Complete Order", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                             }
                         }
                     }
@@ -952,8 +1306,8 @@ private fun DashedDivider(
 private fun BarcodeVisualizer(seed: String) {
     Row(
         modifier = Modifier
-            .height(36.dp)
-            .padding(horizontal = 16.dp),
+            .height(28.dp)
+            .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -964,7 +1318,7 @@ private fun BarcodeVisualizer(seed: String) {
             Box(
                 modifier = Modifier
                     .width(width.dp)
-                    .height(32.dp)
+                    .height(24.dp)
                     .background(Color(0xFF1A120B))
             )
         }
@@ -981,34 +1335,33 @@ private fun shareReceiptText(context: Context, transaction: Transaction) {
     }
 
     val receiptString = """
-        ================================
-               CASH AND BREW COFFEE
-            Specialty Coffee & Bakery
-        ================================
-        Receipt: #${transaction.id}
+        ========================================
+                 CASH AND BREW COFFEE
+               Specialty Coffee & Bakery
+        ========================================
+        TAX INVOICE: #INV-CB-${transaction.id}
         Date: ${transaction.date}
         Cashier: ${AuthManager.currentUser.value?.name ?: "Admin Cashier"}
-        --------------------------------
+        Terminal: POS #01 (Main Bar)
+        ----------------------------------------
         ITEMS:
         $itemsSummary
-        --------------------------------
+        ----------------------------------------
         Total: ${transaction.total.toRupiah()}
         Payment (${transaction.paymentMethod}): ${transaction.payment.toRupiah()}
         Change: ${transaction.change.toRupiah()}
-        ================================
+        ========================================
         Thank you for brewing with us!
         Follow us @cashandbrew.coffee
-        ================================
+        ========================================
     """.trimIndent()
 
-    val sendIntent = Intent().apply {
+    val sendIntent: Intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, receiptString)
-        putExtra(Intent.EXTRA_SUBJECT, "Receipt #${transaction.id} - Cash and Brew")
         type = "text/plain"
     }
 
-    val shareIntent = Intent.createChooser(sendIntent, "Export or Share Receipt")
+    val shareIntent = Intent.createChooser(sendIntent, "Export Cash & Brew Invoice (PDF)")
     context.startActivity(shareIntent)
 }
-
