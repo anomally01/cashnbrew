@@ -128,20 +128,23 @@ fun PaymentSuccessScreen(
     val context = LocalContext.current
     var showReceiptPdfModal by remember { mutableStateOf(false) }
 
-    // Entrance Animation States
-    val iconScale = remember { Animatable(0f) }
+    // Coordinated Gentle Scale-In and Fade-In Entrance Animation States
+    val iconScale = remember { Animatable(0.4f) }
     val iconAlpha = remember { Animatable(0f) }
-    val glowScale = remember { Animatable(0.4f) }
+    val glowScale = remember { Animatable(0.6f) }
     val glowAlpha = remember { Animatable(0f) }
 
     val textAlpha = remember { Animatable(0f) }
-    val textOffsetY = remember { Animatable(30f) }
+    val textScale = remember { Animatable(0.88f) }
+    val textOffsetY = remember { Animatable(16f) }
 
     val cardAlpha = remember { Animatable(0f) }
-    val cardOffsetY = remember { Animatable(40f) }
+    val cardScale = remember { Animatable(0.92f) }
+    val cardOffsetY = remember { Animatable(20f) }
 
     val buttonsAlpha = remember { Animatable(0f) }
-    val buttonsOffsetY = remember { Animatable(40f) }
+    val buttonsScale = remember { Animatable(0.94f) }
+    val buttonsOffsetY = remember { Animatable(20f) }
 
     // Pulse transition for check badge
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_transition")
@@ -165,7 +168,7 @@ fun PaymentSuccessScreen(
     )
 
     LaunchedEffect(Unit) {
-        // Step 1: Ambient background glow blooms
+        // Step 1: Ambient background glow blooms gently
         launch {
             glowScale.animateTo(
                 targetValue = 1f,
@@ -179,9 +182,9 @@ fun PaymentSuccessScreen(
             )
         }
 
-        // Step 2: Check icon bounces in
+        // Step 2: Check icon gently springs & scales in
         launch {
-            iconAlpha.animateTo(1f, animationSpec = tween(200))
+            iconAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing))
         }
         launch {
             iconScale.animateTo(
@@ -193,34 +196,43 @@ fun PaymentSuccessScreen(
             )
         }
 
-        delay(200)
+        delay(160)
 
-        // Step 3: Header Texts slide & fade in
+        // Step 3: Header Title & Subtitle scale-in and fade-in
         launch {
-            textAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            textAlpha.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
         launch {
-            textOffsetY.animateTo(0f, animationSpec = tween(400, easing = FastOutSlowInEasing))
-        }
-
-        delay(150)
-
-        // Step 4: Receipt Card slides & fades in
-        launch {
-            cardAlpha.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+            textScale.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
         launch {
-            cardOffsetY.animateTo(0f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+            textOffsetY.animateTo(0f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
 
-        delay(150)
+        delay(120)
 
-        // Step 5: Buttons fade & slide in
+        // Step 4: Receipt Summary Card scales-in and fades-in
         launch {
-            buttonsAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            cardAlpha.animateTo(1f, animationSpec = tween(500, easing = FastOutSlowInEasing))
         }
         launch {
-            buttonsOffsetY.animateTo(0f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            cardScale.animateTo(1f, animationSpec = tween(500, easing = FastOutSlowInEasing))
+        }
+        launch {
+            cardOffsetY.animateTo(0f, animationSpec = tween(500, easing = FastOutSlowInEasing))
+        }
+
+        delay(120)
+
+        // Step 5: Action Buttons scale-in and fade-in
+        launch {
+            buttonsAlpha.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+        }
+        launch {
+            buttonsScale.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+        }
+        launch {
+            buttonsOffsetY.animateTo(0f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
     }
 
@@ -298,6 +310,7 @@ fun PaymentSuccessScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .offset { IntOffset(0, textOffsetY.value.dp.roundToPx()) }
+                    .scale(textScale.value)
                     .alpha(textAlpha.value)
             ) {
                 Text(
@@ -326,6 +339,7 @@ fun PaymentSuccessScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset { IntOffset(0, cardOffsetY.value.dp.roundToPx()) }
+                    .scale(cardScale.value)
                     .alpha(cardAlpha.value)
                     .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.3f))
                     .clickable { showReceiptPdfModal = true }
@@ -403,6 +417,7 @@ fun PaymentSuccessScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset { IntOffset(0, buttonsOffsetY.value.dp.roundToPx()) }
+                    .scale(buttonsScale.value)
                     .alpha(buttonsAlpha.value)
             ) {
                 // PDF Bill Preview & Print Mockup Button
