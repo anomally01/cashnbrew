@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
       CashAndBrewTheme {
         Surface(
           modifier = Modifier.fillMaxSize(),
-          color = SurfaceDark
+          color = SurfaceDark,
         ) {
           AppNavigation()
         }

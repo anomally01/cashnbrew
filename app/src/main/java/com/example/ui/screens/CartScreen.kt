@@ -82,11 +82,11 @@ import com.example.util.toRupiah
 @Composable
 fun CartScreen(
     onNavigateToTab: (NavTab) -> Unit,
-    onProceedToCheckout: () -> Unit
+    onProceedToCheckout: () -> Unit,
 ) {
     val cartItems by CartManager.cartItems.collectAsState()
     val cartItemCount = cartItems.sumOf { it.quantity }
-    var gratuityAdded by remember { mutableStateOf(false) }
+    var gratuityAdded by remember { mutableStateOf(value = false) }
 
     val subtotal = cartItems.sumOf { it.itemTotal }
     val tax = subtotal * 0.08
@@ -97,9 +97,8 @@ fun CartScreen(
         topBar = {
             TopAppBarHeader(
                 title = "Active Order",
-                subtitle = "Review & Checkout",
-                onNotificationClick = { /* no-op */ }
-            )
+                subtitle = "Review & Checkout"
+            ) { /* no-op */ }
         },
         bottomBar = {
             AppBottomNavBar(
@@ -227,8 +226,7 @@ fun CartScreen(
                         cartItem = cartItem,
                         onIncrease = { CartManager.increaseQuantity(cartItem.product.id, cartItem.size) },
                         onDecrease = { CartManager.decreaseQuantity(cartItem.product.id, cartItem.size) },
-                        onRemove = { CartManager.removeItem(cartItem.product.id, cartItem.size) }
-                    )
+                    ) { CartManager.removeItem(cartItem.product.id, cartItem.size) }
                 }
 
                 // Order Summary Card
@@ -365,11 +363,11 @@ private fun SwipeableCartItemRow(
     cartItem: CartItem,
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
-            if (dismissValue == SwipeToDismissBoxValue.EndToStart || dismissValue == SwipeToDismissBoxValue.StartToEnd) {
+            if ((dismissValue == SwipeToDismissBoxValue.EndToStart) || (dismissValue == SwipeToDismissBoxValue.StartToEnd)) {
                 onRemove()
                 true
             } else {
@@ -442,7 +440,7 @@ private fun CartItemRow(
     cartItem: CartItem,
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     Card(
         modifier = Modifier

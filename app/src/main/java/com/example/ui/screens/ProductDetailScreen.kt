@@ -31,8 +31,6 @@ import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,13 +81,13 @@ import kotlinx.coroutines.launch
 fun ProductDetailScreen(
     productId: String,
     onBackClick: () -> Unit,
-    onProceedToCart: () -> Unit
+    onProceedToCart: () -> Unit,
 ) {
     val product = ProductRepository.getProductById(productId) ?: ProductRepository.getAllProducts().first()
     var selectedSize by remember { mutableStateOf(product.availableSizes.firstOrNull() ?: "Medium") }
     var quantity by remember { mutableIntStateOf(1) }
-    var isFavorite by remember { mutableStateOf(false) }
-    var isExpandedDescription by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(value = false) }
+    var isExpandedDescription by remember { mutableStateOf(value = false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()

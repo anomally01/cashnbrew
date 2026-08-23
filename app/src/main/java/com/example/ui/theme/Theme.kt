@@ -7,7 +7,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 
 private val EspressoDarkColorScheme = darkColorScheme(
     primary = EspressoCaramelPrimary,
@@ -32,7 +31,7 @@ private val EspressoDarkColorScheme = darkColorScheme(
     outlineVariant = EspressoOutlineVariant,
     error = EspressoErrorRed,
     onError = EspressoOnError,
-    errorContainer = EspressoErrorContainer
+    errorContainer = EspressoErrorContainer,
 )
 
 private val CreamLightColorScheme = lightColorScheme(
@@ -58,7 +57,7 @@ private val CreamLightColorScheme = lightColorScheme(
     outlineVariant = CreamOutlineVariant,
     error = CreamErrorRed,
     onError = CreamOnError,
-    errorContainer = CreamErrorContainer
+    errorContainer = CreamErrorContainer,
 )
 
 @Composable

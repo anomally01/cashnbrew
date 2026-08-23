@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 enum class AppThemeMode(val displayName: String, val subtitle: String) {
     ESPRESSO("Espresso", "Dark Velvet Roast"),
-    CREAM("Cream", "Light Silky Cream")
+    CREAM("Cream", "Light Silky Cream"),
 }
 
 object ThemeManager {

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -96,7 +95,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MenuScreen(
     onNavigateToTab: (NavTab) -> Unit,
-    onProductClick: (String) -> Unit
+    onProductClick: (String) -> Unit,
 ) {
     val cartItems by CartManager.cartItems.collectAsState()
     val cartItemCount = cartItems.sumOf { it.quantity }
@@ -131,9 +130,8 @@ fun MenuScreen(
         topBar = {
             TopAppBarHeader(
                 title = "Menu Catalog",
-                subtitle = if (searchQuery.isNotBlank()) "${filteredProducts.size} results for \"$searchQuery\"" else "Specialty Drinks & Bakery",
-                onNotificationClick = { /* no-op */ }
-            )
+                subtitle = if (searchQuery.isNotBlank()) "${filteredProducts.size} results for \"$searchQuery\"" else "Specialty Drinks & Bakery"
+            ) { /* no-op */ }
         },
         bottomBar = {
             AppBottomNavBar(
@@ -245,7 +243,7 @@ fun MenuScreen(
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = OnSurfaceWarm
                         )
-                        if (searchQuery.isNotBlank() || selectedCategory != "All") {
+                        if ((searchQuery.isNotBlank()) || (selectedCategory != "All")) {
                             Text(
                                 text = "${filteredProducts.size} items found",
                                 style = MaterialTheme.typography.labelSmall,

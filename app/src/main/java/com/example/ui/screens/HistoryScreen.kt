@@ -1,7 +1,6 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,7 +66,7 @@ import com.example.util.toRupiah
 
 @Composable
 fun HistoryScreen(
-    onNavigateToTab: (NavTab) -> Unit
+    onNavigateToTab: (NavTab) -> Unit,
 ) {
     val transactions by TransactionManager.transactions.collectAsState()
     val cartItems by CartManager.cartItems.collectAsState()
@@ -89,9 +88,8 @@ fun HistoryScreen(
         topBar = {
             TopAppBarHeader(
                 title = "Cash and Brew",
-                subtitle = "Transaction Logs",
-                onNotificationClick = { /* no-op */ }
-            )
+                subtitle = "Transaction Logs"
+            ) { /* no-op */ }
         },
         bottomBar = {
             AppBottomNavBar(

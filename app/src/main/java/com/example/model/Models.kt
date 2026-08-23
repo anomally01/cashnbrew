@@ -11,7 +11,7 @@ data class Product(
     val reviewCount: Int = 120,
     val volume: String = "160ml",
     val subtitle: String = "Signature Espresso",
-    val availableSizes: List<String> = listOf("Small", "Medium", "Large")
+    val availableSizes: List<String> = listOf("Small", "Medium", "Large"),
 )
 
 data class CartItem(

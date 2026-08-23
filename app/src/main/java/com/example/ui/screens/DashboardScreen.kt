@@ -1,7 +1,6 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -73,13 +72,13 @@ import com.example.util.toRupiah
 @Composable
 fun DashboardScreen(
     onNavigateToTab: (NavTab) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
 ) {
     val transactions by TransactionManager.transactions.collectAsState()
     val cartItems by CartManager.cartItems.collectAsState()
     val cartItemCount = cartItems.sumOf { it.quantity }
 
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(value = false) }
 
     val todaySales = TransactionManager.getTodaySales()
     val totalOrders = TransactionManager.getTotalOrders()
@@ -88,9 +87,8 @@ fun DashboardScreen(
         topBar = {
             TopAppBarHeader(
                 title = "Admin Cashier",
-                subtitle = "Welcome back,",
-                onNotificationClick = { showLogoutDialog = true }
-            )
+                subtitle = "Welcome back,"
+            ) { showLogoutDialog = true }
         },
         bottomBar = {
             AppBottomNavBar(
@@ -391,7 +389,7 @@ fun DashboardScreen(
                     ),
                     modifier = Modifier.testTag("confirm_logout")
                 ) {
-                    Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Close Shift & Logout")
                 }

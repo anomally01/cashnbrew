@@ -110,7 +110,7 @@ data class AppThemeColors(
     val onTertiaryContainer: Color,
     val errorRed: Color,
     val errorContainer: Color,
-    val onError: Color
+    val onError: Color,
 )
 
 val EspressoColors = AppThemeColors(

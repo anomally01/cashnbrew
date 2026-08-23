@@ -3,7 +3,6 @@ package com.example.ui.screens
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -52,7 +51,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
@@ -123,25 +122,27 @@ import kotlinx.coroutines.launch
 fun PaymentSuccessScreen(
     transaction: Transaction,
     onNewOrder: () -> Unit,
-    onViewHistory: () -> Unit
+    onViewHistory: () -> Unit,
 ) {
-    val context = LocalContext.current
-    var showReceiptPdfModal by remember { mutableStateOf(false) }
+    var showReceiptPdfModal by remember { mutableStateOf(value = false) }
 
-    // Entrance Animation States
-    val iconScale = remember { Animatable(0f) }
+    // Coordinated Gentle Scale-In and Fade-In Entrance Animation States
+    val iconScale = remember { Animatable(0.4f) }
     val iconAlpha = remember { Animatable(0f) }
-    val glowScale = remember { Animatable(0.4f) }
+    val glowScale = remember { Animatable(0.6f) }
     val glowAlpha = remember { Animatable(0f) }
 
     val textAlpha = remember { Animatable(0f) }
-    val textOffsetY = remember { Animatable(30f) }
+    val textScale = remember { Animatable(0.88f) }
+    val textOffsetY = remember { Animatable(16f) }
 
     val cardAlpha = remember { Animatable(0f) }
-    val cardOffsetY = remember { Animatable(40f) }
+    val cardScale = remember { Animatable(0.92f) }
+    val cardOffsetY = remember { Animatable(20f) }
 
     val buttonsAlpha = remember { Animatable(0f) }
-    val buttonsOffsetY = remember { Animatable(40f) }
+    val buttonsScale = remember { Animatable(0.94f) }
+    val buttonsOffsetY = remember { Animatable(20f) }
 
     // Pulse transition for check badge
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_transition")
@@ -165,7 +166,7 @@ fun PaymentSuccessScreen(
     )
 
     LaunchedEffect(Unit) {
-        // Step 1: Ambient background glow blooms
+        // Step 1: Ambient background glow blooms gently
         launch {
             glowScale.animateTo(
                 targetValue = 1f,
@@ -179,9 +180,9 @@ fun PaymentSuccessScreen(
             )
         }
 
-        // Step 2: Check icon bounces in
+        // Step 2: Check icon gently springs & scales in
         launch {
-            iconAlpha.animateTo(1f, animationSpec = tween(200))
+            iconAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing))
         }
         launch {
             iconScale.animateTo(
@@ -193,34 +194,43 @@ fun PaymentSuccessScreen(
             )
         }
 
-        delay(200)
+        delay(160)
 
-        // Step 3: Header Texts slide & fade in
+        // Step 3: Header Title & Subtitle scale-in and fade-in
         launch {
-            textAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            textAlpha.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
         launch {
-            textOffsetY.animateTo(0f, animationSpec = tween(400, easing = FastOutSlowInEasing))
-        }
-
-        delay(150)
-
-        // Step 4: Receipt Card slides & fades in
-        launch {
-            cardAlpha.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+            textScale.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
         launch {
-            cardOffsetY.animateTo(0f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+            textOffsetY.animateTo(0f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
 
-        delay(150)
+        delay(120)
 
-        // Step 5: Buttons fade & slide in
+        // Step 4: Receipt Summary Card scales-in and fades-in
         launch {
-            buttonsAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            cardAlpha.animateTo(1f, animationSpec = tween(500, easing = FastOutSlowInEasing))
         }
         launch {
-            buttonsOffsetY.animateTo(0f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            cardScale.animateTo(1f, animationSpec = tween(500, easing = FastOutSlowInEasing))
+        }
+        launch {
+            cardOffsetY.animateTo(0f, animationSpec = tween(500, easing = FastOutSlowInEasing))
+        }
+
+        delay(120)
+
+        // Step 5: Action Buttons scale-in and fade-in
+        launch {
+            buttonsAlpha.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+        }
+        launch {
+            buttonsScale.animateTo(1f, animationSpec = tween(450, easing = FastOutSlowInEasing))
+        }
+        launch {
+            buttonsOffsetY.animateTo(0f, animationSpec = tween(450, easing = FastOutSlowInEasing))
         }
     }
 
@@ -298,6 +308,7 @@ fun PaymentSuccessScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .offset { IntOffset(0, textOffsetY.value.dp.roundToPx()) }
+                    .scale(textScale.value)
                     .alpha(textAlpha.value)
             ) {
                 Text(
@@ -326,6 +337,7 @@ fun PaymentSuccessScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset { IntOffset(0, cardOffsetY.value.dp.roundToPx()) }
+                    .scale(cardScale.value)
                     .alpha(cardAlpha.value)
                     .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.3f))
                     .clickable { showReceiptPdfModal = true }
@@ -403,6 +415,7 @@ fun PaymentSuccessScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset { IntOffset(0, buttonsOffsetY.value.dp.roundToPx()) }
+                    .scale(buttonsScale.value)
                     .alpha(buttonsAlpha.value)
             ) {
                 // PDF Bill Preview & Print Mockup Button
@@ -486,12 +499,11 @@ fun PaymentSuccessScreen(
     if (showReceiptPdfModal) {
         PdfBillVisualizerDialog(
             transaction = transaction,
-            onDismiss = { showReceiptPdfModal = false },
-            onCloseOrder = {
-                showReceiptPdfModal = false
-                onNewOrder()
-            }
-        )
+            onDismiss = { showReceiptPdfModal = false }
+        ) {
+            showReceiptPdfModal = false
+            onNewOrder()
+        }
     }
 }
 
@@ -641,7 +653,7 @@ private fun PdfBillVisualizerDialog(
                         onClick = { selectedFormatTab = 1 },
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.ReceiptLong, contentDescription = null, modifier = Modifier.size(15.dp))
+                                Icon(Icons.AutoMirrored.Filled.ReceiptLong, contentDescription = null, modifier = Modifier.size(15.dp))
                                 Text("80mm Thermal Receipt", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         },
@@ -866,7 +878,7 @@ private fun PdfBillVisualizerDialog(
                                                     textAlign = TextAlign.Center
                                                 )
                                                 Text(
-                                                    text = "${item.quantity}",
+                                                    text = item.quantity.toString(),
                                                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
                                                     color = Color(0xFF1E1A16),
                                                     modifier = Modifier.weight(0.5f),
@@ -1086,7 +1098,7 @@ private fun PdfBillVisualizerDialog(
                                     ) {
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                text = "${item.quantity}x ${item.product.name}",
+                                                text = item.quantity.toString() + "x " + item.product.name,
                                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp),
                                                 color = Color(0xFF1A120B)
                                             )

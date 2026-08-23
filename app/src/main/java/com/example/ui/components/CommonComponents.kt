@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Dashboard
@@ -71,7 +70,7 @@ enum class NavTab {
 
 @Composable
 fun ThemeTogglePill(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val themeMode by ThemeManager.themeMode.collectAsState()
     val isEspresso = themeMode == AppThemeMode.ESPRESSO
@@ -123,12 +122,12 @@ fun ThemeTogglePill(
 
 @Composable
 fun TopAppBarHeader(
+    modifier: Modifier = Modifier,
     title: String = "Admin Cashier",
     subtitle: String = "Welcome back,",
-    onNotificationClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onNotificationClick: () -> Unit = {}
 ) {
-    val currentUser = AuthManager.currentUser.value
+    val currentUser by AuthManager.currentUser.collectAsState()
 
     Row(
         modifier = modifier
@@ -150,7 +149,7 @@ fun TopAppBarHeader(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = if (title == "Open Shift" || title == "Cash and Brew") (currentUser?.name ?: "Admin Cashier") else title,
+                text = if ((title == "Open Shift") || (title == "Cash and Brew")) (currentUser?.name ?: "Admin Cashier") else title,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -225,9 +224,9 @@ fun TopAppBarHeader(
 @Composable
 fun AppBottomNavBar(
     currentTab: NavTab,
-    cartItemCount: Int = 0,
     onTabSelected: (NavTab) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    cartItemCount: Int = 0
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -253,8 +252,7 @@ fun AppBottomNavBar(
                     selectedIcon = Icons.Filled.Dashboard,
                     unselectedIcon = Icons.Outlined.Dashboard,
                     testTag = "nav_dashboard",
-                    onClick = { onTabSelected(NavTab.DASHBOARD) }
-                )
+                ) { onTabSelected(NavTab.DASHBOARD) }
 
                 NavBarItem(
                     title = "Menu",
@@ -262,8 +260,7 @@ fun AppBottomNavBar(
                     selectedIcon = Icons.Filled.RestaurantMenu,
                     unselectedIcon = Icons.Outlined.RestaurantMenu,
                     testTag = "nav_menu",
-                    onClick = { onTabSelected(NavTab.MENU) }
-                )
+                ) { onTabSelected(NavTab.MENU) }
 
                 NavBarItem(
                     title = "Cart",
@@ -272,8 +269,7 @@ fun AppBottomNavBar(
                     unselectedIcon = Icons.Outlined.ShoppingCart,
                     badgeCount = cartItemCount,
                     testTag = "nav_cart",
-                    onClick = { onTabSelected(NavTab.CART) }
-                )
+                ) { onTabSelected(NavTab.CART) }
 
                 NavBarItem(
                     title = "Activity",
@@ -281,8 +277,7 @@ fun AppBottomNavBar(
                     selectedIcon = Icons.Filled.History,
                     unselectedIcon = Icons.Outlined.History,
                     testTag = "nav_history",
-                    onClick = { onTabSelected(NavTab.HISTORY) }
-                )
+                ) { onTabSelected(NavTab.HISTORY) }
             }
         }
     }

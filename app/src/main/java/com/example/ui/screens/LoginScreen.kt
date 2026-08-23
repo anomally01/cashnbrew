@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -71,11 +70,11 @@ import com.example.ui.theme.SurfaceDark
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
 ) {
-    var enteredPin by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showManagerDialog by remember { mutableStateOf(false) }
+    var enteredPin by remember { mutableStateOf(value = "") }
+    var errorMessage by remember { mutableStateOf<String?>(value = null) }
+    var showManagerDialog by remember { mutableStateOf(value = false) }
 
     val handleDigitClick: (String) -> Unit = { digit ->
         if (enteredPin.length < 4) {
@@ -229,25 +228,25 @@ fun LoginScreen(
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    PinButton(digit = "1", onClick = { handleDigitClick("1") })
-                    PinButton(digit = "2", onClick = { handleDigitClick("2") })
-                    PinButton(digit = "3", onClick = { handleDigitClick("3") })
+                    PinButton(digit = "1") { handleDigitClick("1") }
+                    PinButton(digit = "2") { handleDigitClick("2") }
+                    PinButton(digit = "3") { handleDigitClick("3") }
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    PinButton(digit = "4", onClick = { handleDigitClick("4") })
-                    PinButton(digit = "5", onClick = { handleDigitClick("5") })
-                    PinButton(digit = "6", onClick = { handleDigitClick("6") })
+                    PinButton(digit = "4") { handleDigitClick("4") }
+                    PinButton(digit = "5") { handleDigitClick("5") }
+                    PinButton(digit = "6") { handleDigitClick("6") }
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    PinButton(digit = "7", onClick = { handleDigitClick("7") })
-                    PinButton(digit = "8", onClick = { handleDigitClick("8") })
-                    PinButton(digit = "9", onClick = { handleDigitClick("9") })
+                    PinButton(digit = "7") { handleDigitClick("7") }
+                    PinButton(digit = "8") { handleDigitClick("8") }
+                    PinButton(digit = "9") { handleDigitClick("9") }
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
@@ -255,7 +254,7 @@ fun LoginScreen(
                 ) {
                     // Empty space on bottom-left for alignment
                     Box(modifier = Modifier.size(64.dp))
-                    PinButton(digit = "0", onClick = { handleDigitClick("0") })
+                    PinButton(digit = "0") { handleDigitClick("0") }
                     // Backspace button
                     IconButton(
                         onClick = handleBackspace,

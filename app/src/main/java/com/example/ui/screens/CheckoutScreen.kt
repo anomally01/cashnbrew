@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -76,16 +75,16 @@ import com.example.util.toRupiah
 @Composable
 fun CheckoutScreen(
     onBackClick: () -> Unit,
-    onPaymentSuccess: (Transaction) -> Unit
+    onPaymentSuccess: (Transaction) -> Unit,
 ) {
     val cartItems by CartManager.cartItems.collectAsState()
     val subtotal = cartItems.sumOf { it.itemTotal }
     val tax = subtotal * 0.08
     val totalAmount = subtotal + tax
 
-    var selectedPaymentMethod by remember { mutableStateOf("Cash") }
-    var rawReceivedInput by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var selectedPaymentMethod by remember { mutableStateOf(value = "Cash") }
+    var rawReceivedInput by remember { mutableStateOf(value = "") }
+    var errorMessage by remember { mutableStateOf<String?>(value = null) }
 
     val receivedAmount = rawReceivedInput.toDoubleOrNull() ?: 0.0
     val changeDue = if (receivedAmount >= totalAmount) receivedAmount - totalAmount else 0.0
@@ -112,7 +111,7 @@ fun CheckoutScreen(
     }
 
     val handleCompleteTender: () -> Unit = {
-        if (selectedPaymentMethod == "Cash" && receivedAmount < totalAmount) {
+        if ((selectedPaymentMethod == "Cash") && (receivedAmount < totalAmount)) {
             errorMessage = "Received amount (${receivedAmount.toRupiah()}) is less than total due (${totalAmount.toRupiah()})"
         } else {
             val finalPayment = if (selectedPaymentMethod == "Cash") receivedAmount else totalAmount
@@ -258,24 +257,21 @@ fun CheckoutScreen(
                         icon = Icons.Default.Payments,
                         isSelected = selectedPaymentMethod == "Cash",
                         modifier = Modifier.weight(1f),
-                        onClick = { selectedPaymentMethod = "Cash" }
-                    )
+                    ) { selectedPaymentMethod = "Cash" }
 
                     PaymentMethodTab(
                         title = "Card",
                         icon = Icons.Default.CreditCard,
                         isSelected = selectedPaymentMethod == "Card",
                         modifier = Modifier.weight(1f),
-                        onClick = { selectedPaymentMethod = "Card" }
-                    )
+                    ) { selectedPaymentMethod = "Card" }
 
                     PaymentMethodTab(
                         title = "NFC / Tap",
                         icon = Icons.Default.Contactless,
                         isSelected = selectedPaymentMethod == "NFC / Tap",
                         modifier = Modifier.weight(1f),
-                        onClick = { selectedPaymentMethod = "NFC / Tap" }
-                    )
+                    ) { selectedPaymentMethod = "NFC / Tap" }
                 }
             }
 
