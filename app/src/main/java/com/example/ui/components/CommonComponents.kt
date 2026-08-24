@@ -127,8 +127,8 @@ fun ThemeTogglePill(
 fun TopAppBarHeader(
     title: String = "Admin Cashier",
     subtitle: String = "Welcome back,",
-    onNotificationClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNotificationClick: () -> Unit = {}
 ) {
     val currentUser = AuthManager.currentUser.value
 
