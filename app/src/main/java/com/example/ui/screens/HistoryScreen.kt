@@ -17,9 +17,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Contactless
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
@@ -176,7 +178,7 @@ fun HistoryScreen(
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -193,9 +195,14 @@ fun HistoryScreen(
                                 )
                             }
                             Text(
-                                text = "No transactions found",
+                                text = if (searchQuery.isNotBlank()) "No matching transactions" else "No transactions yet",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = OnSurfaceWarm
+                            )
+                            Text(
+                                text = if (searchQuery.isNotBlank()) "Try searching with a different keyword or order ID" else "Completed sales and order logs will appear here",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = OnSurfaceVariant
                             )
                         }
                     }
@@ -305,7 +312,12 @@ private fun TransactionHistoryCard(transaction: Transaction) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
-                        imageVector = if (transaction.paymentMethod == "Cash") Icons.Default.Payments else Icons.Default.CreditCard,
+                        imageVector = when (transaction.paymentMethod) {
+                            "QRIS" -> Icons.Default.QrCode2
+                            "Cash" -> Icons.Default.Payments
+                            "NFC", "NFC / Tap" -> Icons.Default.Contactless
+                            else -> Icons.Default.CreditCard
+                        },
                         contentDescription = null,
                         tint = OnSurfaceVariant,
                         modifier = Modifier.size(16.dp)

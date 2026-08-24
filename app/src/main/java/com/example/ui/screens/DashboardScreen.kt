@@ -159,8 +159,8 @@ fun DashboardScreen(
                             Text(
                                 text = if (todaySales > 0) {
                                     val formatted = todaySales.toRupiah()
-                                    formatted.replace("Rp ", "").replace("Rp", "")
-                                } else "2.450.000",
+                                    formatted.replace("Rp ", "").replace("Rp", "").trim()
+                                } else "0",
                                 style = MaterialTheme.typography.headlineLarge.copy(
                                     fontWeight = FontWeight.Black,
                                     fontSize = 32.sp
@@ -195,7 +195,7 @@ fun DashboardScreen(
                                     color = Color(0xFF1A120B).copy(alpha = 0.6f)
                                 )
                                 Text(
-                                    text = "${if (totalOrders > 0) totalOrders else 124} Orders",
+                                    text = "$totalOrders Orders",
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
@@ -211,7 +211,7 @@ fun DashboardScreen(
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Text(
-                                    text = "+12% today",
+                                    text = if (totalOrders > 0) "+$totalOrders today" else "Shift active",
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp
@@ -349,8 +349,39 @@ fun DashboardScreen(
 
             // 4. Recent Transactions List
             val displayList = transactions.take(4)
-            items(displayList, key = { it.id }) { tx ->
-                SleekTransactionCard(transaction = tx)
+            if (displayList.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceContainer.copy(alpha = 0.6f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ReceiptLong,
+                                contentDescription = null,
+                                tint = OnSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Text(
+                                text = "No transactions recorded yet today",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                color = OnSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(displayList, key = { it.id }) { tx ->
+                    SleekTransactionCard(transaction = tx)
+                }
             }
 
             item {

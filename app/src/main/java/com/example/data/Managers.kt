@@ -214,20 +214,26 @@ object CartManager {
 
     fun addToCart(product: Product, quantity: Int = 1, size: String = "Medium", notes: String = "") {
         val currentList = _cartItems.value.toMutableList()
-        val existingIndex = currentList.indexOfFirst { it.product.id == product.id && it.size == size }
+        val existingIndex = currentList.indexOfFirst { 
+            it.product.id == product.id && it.size == size && it.notes.trim() == notes.trim() 
+        }
         
         if (existingIndex >= 0) {
             val existing = currentList[existingIndex]
             currentList[existingIndex] = existing.copy(quantity = existing.quantity + quantity)
         } else {
-            currentList.add(CartItem(product = product, quantity = quantity, size = size, notes = notes))
+            currentList.add(CartItem(product = product, quantity = quantity, size = size, notes = notes.trim()))
         }
         _cartItems.value = currentList
     }
 
-    fun increaseQuantity(productId: String, size: String = "") {
+    fun increaseQuantity(productId: String, size: String = "", notes: String? = null) {
         val currentList = _cartItems.value.toMutableList()
-        val index = currentList.indexOfFirst { it.product.id == productId && (size.isEmpty() || it.size == size) }
+        val index = currentList.indexOfFirst { 
+            it.product.id == productId && 
+            (size.isEmpty() || it.size == size) &&
+            (notes == null || it.notes.trim() == notes.trim())
+        }
         if (index >= 0) {
             val item = currentList[index]
             currentList[index] = item.copy(quantity = item.quantity + 1)
@@ -235,9 +241,13 @@ object CartManager {
         }
     }
 
-    fun decreaseQuantity(productId: String, size: String = "") {
+    fun decreaseQuantity(productId: String, size: String = "", notes: String? = null) {
         val currentList = _cartItems.value.toMutableList()
-        val index = currentList.indexOfFirst { it.product.id == productId && (size.isEmpty() || it.size == size) }
+        val index = currentList.indexOfFirst { 
+            it.product.id == productId && 
+            (size.isEmpty() || it.size == size) &&
+            (notes == null || it.notes.trim() == notes.trim())
+        }
         if (index >= 0) {
             val item = currentList[index]
             if (item.quantity > 1) {
@@ -250,9 +260,13 @@ object CartManager {
         }
     }
 
-    fun removeItem(productId: String, size: String = "") {
+    fun removeItem(productId: String, size: String = "", notes: String? = null) {
         val currentList = _cartItems.value.toMutableList()
-        currentList.removeAll { it.product.id == productId && (size.isEmpty() || it.size == size) }
+        currentList.removeAll { 
+            it.product.id == productId && 
+            (size.isEmpty() || it.size == size) &&
+            (notes == null || it.notes.trim() == notes.trim())
+        }
         _cartItems.value = currentList
     }
 
@@ -279,68 +293,14 @@ object CartManager {
 }
 
 object TransactionManager {
-    private val _transactions = MutableStateFlow<List<Transaction>>(
-        listOf(
-            Transaction(
-                id = "#ORD-8924",
-                items = listOf(
-                    CartItem(ProductRepository.getAllProducts()[0], 2, "Medium"),
-                    CartItem(ProductRepository.getAllProducts()[7], 1, "Standard")
-                ),
-                total = 58000.0,
-                payment = 60000.0,
-                change = 2000.0,
-                date = "Today, 10:42 AM",
-                status = "Completed",
-                paymentMethod = "Cash",
-                orderSummaryText = "2x Cappuccino, 1x Croissant"
-            ),
-            Transaction(
-                id = "#ORD-8923",
-                items = listOf(
-                    CartItem(ProductRepository.getAllProducts()[2], 1, "Double")
-                ),
-                total = 18500.0,
-                payment = 20000.0,
-                change = 1500.0,
-                date = "Today, 10:38 AM",
-                status = "Completed",
-                paymentMethod = "NFC / Tap",
-                orderSummaryText = "1x Double Espresso"
-            ),
-            Transaction(
-                id = "#ORD-8890",
-                items = listOf(
-                    CartItem(ProductRepository.getAllProducts()[1], 4, "Large"),
-                    CartItem(ProductRepository.getAllProducts()[7], 2, "Standard")
-                ),
-                total = 124000.0,
-                payment = 150000.0,
-                change = 26000.0,
-                date = "Yesterday, 04:30 PM",
-                status = "Completed",
-                paymentMethod = "Cash",
-                orderSummaryText = "4x Caffe Latte, 2x Croissant"
-            ),
-            Transaction(
-                id = "#ORD-8885",
-                items = listOf(
-                    CartItem(ProductRepository.getAllProducts()[5], 2, "Medium"),
-                    CartItem(ProductRepository.getAllProducts()[8], 1, "Regular")
-                ),
-                total = 55000.0,
-                payment = 55000.0,
-                change = 0.0,
-                date = "Yesterday, 02:15 PM",
-                status = "Completed",
-                paymentMethod = "Card",
-                orderSummaryText = "2x Matcha Latte, 1x French Fries"
-            )
-        )
-    )
+    private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
     val transactions: StateFlow<List<Transaction>> = _transactions.asStateFlow()
 
-    private var orderSequence = 8925
+    private var orderSequence = 1001
+
+    fun clearTransactions() {
+        _transactions.value = emptyList()
+    }
 
     fun createTransaction(
         items: List<CartItem>,

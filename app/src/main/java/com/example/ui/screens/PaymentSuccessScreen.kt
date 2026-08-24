@@ -31,9 +31,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -238,7 +240,9 @@ fun PaymentSuccessScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(SurfaceDark)
-            .padding(24.dp),
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         // Ambient Radial Glow
@@ -527,7 +531,9 @@ private fun PdfBillVisualizerDialog(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.82f))
-                .padding(horizontal = 14.dp, vertical = 20.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -869,6 +875,17 @@ private fun PdfBillVisualizerDialog(
                                                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                                         color = Color(0xFF8C7E72)
                                                     )
+                                                    if (item.notes.isNotBlank()) {
+                                                        Text(
+                                                            text = "Note: ${item.notes}",
+                                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                                fontSize = 9.sp,
+                                                                fontWeight = FontWeight.SemiBold,
+                                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                            ),
+                                                            color = Color(0xFF9E6426)
+                                                        )
+                                                    }
                                                 }
                                                 Text(
                                                     text = item.size,
@@ -1107,6 +1124,17 @@ private fun PdfBillVisualizerDialog(
                                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                                 color = Color(0xFF8C7E72)
                                             )
+                                            if (item.notes.isNotBlank()) {
+                                                Text(
+                                                    text = "* ${item.notes}",
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontSize = 9.5.sp,
+                                                        fontFamily = FontFamily.Monospace,
+                                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                    ),
+                                                    color = Color(0xFF5D4037)
+                                                )
+                                            }
                                         }
                                         Text(
                                             text = item.itemTotal.toRupiah(),

@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Dashboard
@@ -70,7 +73,7 @@ enum class NavTab {
 
 @Composable
 fun ThemeTogglePill(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val themeMode by ThemeManager.themeMode.collectAsState()
     val isEspresso = themeMode == AppThemeMode.ESPRESSO
@@ -122,99 +125,104 @@ fun ThemeTogglePill(
 
 @Composable
 fun TopAppBarHeader(
-    modifier: Modifier = Modifier,
     title: String = "Admin Cashier",
     subtitle: String = "Welcome back,",
-    onNotificationClick: () -> Unit = {}
+    onNotificationClick: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    val currentUser by AuthManager.currentUser.collectAsState()
+    val currentUser = AuthManager.currentUser.value
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(SurfaceDark)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = SurfaceDark
     ) {
-        Column(modifier = Modifier.weight(1f, fill = false)) {
-            Text(
-                text = subtitle.uppercase(),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp
-                ),
-                color = OnSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = if ((title == "Open Shift") || (title == "Cash and Brew")) (currentUser?.name ?: "Admin Cashier") else title,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                ),
-                color = OnSurfaceWarm
-            )
-        }
-
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Theme Toggle Pill (Espresso <-> Cream)
-            ThemeTogglePill()
-
-            // Notification Button
-            IconButton(
-                onClick = onNotificationClick,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(SurfaceContainer)
-                    .border(1.dp, OutlineVariant, RoundedCornerShape(14.dp))
-                    .testTag("notification_button")
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = "Notifications",
-                        tint = OnSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    // Notification indicator dot
-                    Box(
-                        modifier = Modifier
-                            .size(7.dp)
-                            .align(Alignment.TopEnd)
-                            .background(CaramelPrimary, CircleShape)
-                    )
-                }
+            Column(modifier = Modifier.weight(1f, fill = false)) {
+                Text(
+                    text = subtitle.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 1.5.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.sp
+                    ),
+                    color = OnSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = if (title == "Open Shift" || title == "Cash and Brew") (currentUser?.name ?: "Admin Cashier") else title,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = OnSurfaceWarm
+                )
             }
 
-            // Staff avatar badge
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(SurfaceContainer)
-                    .border(1.dp, OutlineVariant, RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Theme Toggle Pill (Espresso <-> Cream)
+                ThemeTogglePill()
+
+                // Notification Button
+                IconButton(
+                    onClick = onNotificationClick,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(SurfaceContainer)
+                        .border(1.dp, OutlineVariant, RoundedCornerShape(14.dp))
+                        .testTag("notification_button")
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            tint = OnSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        // Notification indicator dot
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .align(Alignment.TopEnd)
+                                .background(CaramelPrimary, CircleShape)
+                        )
+                    }
+                }
+
+                // Staff avatar badge
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(CaramelPrimary),
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(SurfaceContainer)
+                        .border(1.dp, OutlineVariant, RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = (currentUser?.name?.take(1) ?: "A").uppercase(),
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = OnPrimary
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(CaramelPrimary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (currentUser?.name?.take(1) ?: "A").uppercase(),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = OnPrimary
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -224,9 +232,9 @@ fun TopAppBarHeader(
 @Composable
 fun AppBottomNavBar(
     currentTab: NavTab,
+    cartItemCount: Int = 0,
     onTabSelected: (NavTab) -> Unit,
-    modifier: Modifier = Modifier,
-    cartItemCount: Int = 0
+    modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -239,7 +247,8 @@ fun AppBottomNavBar(
                 .fillMaxWidth()
                 .border(width = 1.dp, color = OutlineVariant)
                 .background(SurfaceContainerLow)
-                .padding(horizontal = 8.dp, vertical = 10.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -252,7 +261,8 @@ fun AppBottomNavBar(
                     selectedIcon = Icons.Filled.Dashboard,
                     unselectedIcon = Icons.Outlined.Dashboard,
                     testTag = "nav_dashboard",
-                ) { onTabSelected(NavTab.DASHBOARD) }
+                    onClick = { onTabSelected(NavTab.DASHBOARD) }
+                )
 
                 NavBarItem(
                     title = "Menu",
@@ -260,7 +270,8 @@ fun AppBottomNavBar(
                     selectedIcon = Icons.Filled.RestaurantMenu,
                     unselectedIcon = Icons.Outlined.RestaurantMenu,
                     testTag = "nav_menu",
-                ) { onTabSelected(NavTab.MENU) }
+                    onClick = { onTabSelected(NavTab.MENU) }
+                )
 
                 NavBarItem(
                     title = "Cart",
@@ -269,7 +280,8 @@ fun AppBottomNavBar(
                     unselectedIcon = Icons.Outlined.ShoppingCart,
                     badgeCount = cartItemCount,
                     testTag = "nav_cart",
-                ) { onTabSelected(NavTab.CART) }
+                    onClick = { onTabSelected(NavTab.CART) }
+                )
 
                 NavBarItem(
                     title = "Activity",
@@ -277,7 +289,8 @@ fun AppBottomNavBar(
                     selectedIcon = Icons.Filled.History,
                     unselectedIcon = Icons.Outlined.History,
                     testTag = "nav_history",
-                ) { onTabSelected(NavTab.HISTORY) }
+                    onClick = { onTabSelected(NavTab.HISTORY) }
+                )
             }
         }
     }

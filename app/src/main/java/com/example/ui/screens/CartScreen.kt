@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveShoppingCart
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material.icons.filled.SwipeLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -58,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -221,12 +225,12 @@ fun CartScreen(
                 }
 
                 // Cart Items List with Swipe-To-Delete
-                items(cartItems, key = { "${it.product.id}_${it.size}" }) { cartItem ->
+                items(cartItems, key = { "${it.product.id}_${it.size}_${it.notes}" }) { cartItem ->
                     SwipeableCartItemRow(
                         cartItem = cartItem,
-                        onIncrease = { CartManager.increaseQuantity(cartItem.product.id, cartItem.size) },
-                        onDecrease = { CartManager.decreaseQuantity(cartItem.product.id, cartItem.size) },
-                    ) { CartManager.removeItem(cartItem.product.id, cartItem.size) }
+                        onIncrease = { CartManager.increaseQuantity(cartItem.product.id, cartItem.size, cartItem.notes) },
+                        onDecrease = { CartManager.decreaseQuantity(cartItem.product.id, cartItem.size, cartItem.notes) },
+                    ) { CartManager.removeItem(cartItem.product.id, cartItem.size, cartItem.notes) }
                 }
 
                 // Order Summary Card
@@ -478,18 +482,49 @@ private fun CartItemRow(
                     )
                 }
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = cartItem.product.name,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = OnSurfaceWarm
                     )
                     Text(
-                        text = "${cartItem.size}${if (cartItem.notes.isNotEmpty()) ", " + cartItem.notes else ""}",
+                        text = cartItem.size,
                         style = MaterialTheme.typography.labelSmall,
                         color = OnSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
+                    if (cartItem.notes.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = CaramelPrimary.copy(alpha = 0.15f),
+                            border = BorderStroke(0.6.dp, CaramelPrimary.copy(alpha = 0.4f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.StickyNote2,
+                                    contentDescription = null,
+                                    tint = CaramelPrimary,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                                Text(
+                                    text = cartItem.notes,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = CaramelPrimary,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = cartItem.itemTotal.toRupiah(),
                         style = MaterialTheme.typography.titleMedium.copy(

@@ -33,7 +33,10 @@ data class Transaction(
     val date: String,
     val status: String = "Completed", // "Completed", "Refunded"
     val paymentMethod: String = "Cash", // "Cash", "Card", "NFC / Tap"
-    val orderSummaryText: String = items.joinToString(", ") { "${it.quantity}x ${it.product.name}" }
+    val orderSummaryText: String = items.joinToString(", ") { 
+        val notePart = if (it.notes.isNotBlank()) " (${it.notes})" else ""
+        "${it.quantity}x ${it.product.name}$notePart" 
+    }
 )
 
 data class User(
